@@ -1,0 +1,32 @@
+:root {
+  --color-text-primary: #fff;
+  --color-text-secondary: #b3b3b3;
+  --color-bg-primary: #1db954;
+  --color-bg-focus: #1da950;
+  --color-bg-active: #1da914;
+  --color-bg-warning: #ff0000;
+  --color-border-primary: #1db954;
+  --color-border-secondary: #b3b3b3;
+  --color-border-hover: #1da914;
+  --color-border-focus: #1da950;
+  --color-text-hover: #1da914;
+  --color-bg-hover: #1da950;
+
+}
+
+body {
+  background: #121212;
+  color: #fff;
+  font-family: "Segoe UI";
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  align-items: center;
+}
+
+* {
+  margin: 0;
+  box-sizing: border-box;
+  color: white;
+}
