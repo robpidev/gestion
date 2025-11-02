@@ -1,29 +1,35 @@
-mod config;
+use server::auth;
+use server::config;
+use server::config::server_config::Server;
 
 use actix_web::{self, App, HttpResponse, HttpServer, Responder, get};
+use server::user;
 
 #[get("/")]
 async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello world w")
+    HttpResponse::Ok().body("Hello world")
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     println!("Server is starting...");
 
-    let config = match config::Config::from_env() {
-        Ok(config) => {
-            println!("Server is starting on {}:{}", config.host, config.port);
-            config
-        }
-        Err(e) => {
-            println!("Failed to load config: {}", e);
-            std::process::exit(1);
-        }
-    };
+    // Load .env file
+    config::load_env();
 
-    HttpServer::new(|| App::new().service(hello))
-        .bind((config.host, config.port))?
-        .run()
-        .await
+    // Config server
+    let server_config = Server::from_env();
+
+    println!("Host: {}", server_config.host);
+    println!("Port: {}", server_config.port);
+
+    HttpServer::new(|| {
+        App::new()
+            .service(hello)
+            .configure(auth::routes)
+            .configure(user::routes)
+    })
+    .bind((server_config.host, server_config.port))?
+    .run()
+    .await
 }
