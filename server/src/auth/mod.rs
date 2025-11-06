@@ -1,4 +1,5 @@
 mod services;
+mod signin;
 mod signup;
 use actix_web::{HttpResponse, Responder, get, web};
 
@@ -8,5 +9,10 @@ async fn auth() -> impl Responder {
 }
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(web::scope("/auth").service(auth).configure(signup::routes));
+    cfg.service(
+        web::scope("/auth")
+            .service(auth)
+            .configure(signup::routes)
+            .configure(signin::routes),
+    );
 }
