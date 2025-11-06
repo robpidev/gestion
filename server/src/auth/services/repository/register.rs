@@ -6,6 +6,14 @@ use crate::{
     shared::{etities::userdb::User, repository::db::DB},
 };
 
+fn parse_error(error: Error) -> (u16, String) {
+    if error.to_string().contains("username") {
+        return (409, "Username already exists".to_string());
+    }
+
+    (500, format!("DB register error: {error}"))
+}
+
 async fn respose_parse<T: ToString + DeserializeOwned>(
     res: Result<Response, Error>,
 ) -> Result<String, (u16, String)> {
@@ -16,7 +24,7 @@ async fn respose_parse<T: ToString + DeserializeOwned>(
 
     let data: Option<T> = match res.take(0) {
         Ok(data) => data,
-        Err(e) => return Err((400, format!("DB register error: {e}"))),
+        Err(e) => return Err(parse_error(e)),
     };
 
     match data {
@@ -25,7 +33,7 @@ async fn respose_parse<T: ToString + DeserializeOwned>(
     }
 }
 
-pub async fn register(user: NewUser) -> Result<String, (u16, String)> {
+pub async fn create_user(user: NewUser) -> Result<String, (u16, String)> {
     let query = r#"
     CREATE user content {
         name: $name,

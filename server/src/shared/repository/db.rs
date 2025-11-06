@@ -20,7 +20,7 @@ pub async fn db_connect() -> Result<(), String> {
 
     println!("config: {:#?}", config);
 
-    match DB.connect::<Ws>(config.wss).await {
+    match DB.connect(config.wss).await {
         Ok(_) => println!("Conected to DB"),
         Err(e) => return Err(format!("DB connect error: {}", e)),
     };

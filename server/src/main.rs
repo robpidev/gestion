@@ -8,7 +8,7 @@ use server::user;
 
 #[get("/")]
 async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello world")
+    HttpResponse::Ok().body("Welcome to api")
 }
 
 #[actix_web::main]

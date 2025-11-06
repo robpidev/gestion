@@ -48,7 +48,7 @@ mod tests {
         let names = Names::new("Rober").unwrap();
         assert_eq!(names.names, "Rober");
 
-        let names = Names::new("Rober  ").unwrap();
+        let names = Names::new("rober  ").unwrap();
         assert_eq!(names.names, "Rober");
 
         let names = Names::new(" ");
