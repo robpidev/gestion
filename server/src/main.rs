@@ -1,6 +1,7 @@
 use server::auth;
 use server::config;
-use server::config::server_config::Server;
+use server::config::server::Server;
+use server::shared::repository::db;
 
 use actix_web::{self, App, HttpResponse, HttpServer, Responder, get};
 use server::user;
@@ -22,6 +23,11 @@ async fn main() -> std::io::Result<()> {
 
     println!("Host: {}", server_config.host);
     println!("Port: {}", server_config.port);
+
+    // config db
+    if let Err(e) = db::db_connect().await {
+        panic!("{e}");
+    }
 
     HttpServer::new(|| {
         App::new()

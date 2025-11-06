@@ -1,6 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
-pub mod server_config;
+pub mod db;
+pub mod server;
 
 /// Macros
 #[macro_export]
