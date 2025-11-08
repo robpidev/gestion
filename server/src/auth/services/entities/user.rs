@@ -1,5 +1,8 @@
-use super::names::Names;
-use super::username::Username;
+use serde::Serialize;
+
+// use super::names::Names;
+// use super::username::Username;
+use crate::shared::etities::{names::Names, username::Username};
 
 pub struct NewUser {
     name: Names,
@@ -50,4 +53,13 @@ impl ToString for NewUser {
             self.password
         )
     }
+}
+
+#[derive(Serialize)]
+pub struct UserSession {
+    pub id: String,
+    pub username: String,
+    pub name: String,
+    pub lastname: String,
+    pub token: String,
 }

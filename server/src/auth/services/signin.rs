@@ -1,8 +1,47 @@
-use super::repository;
-use crate::shared::etities::userdb::User;
+use jsonwebtoken::{EncodingKey, Header, encode};
+use serde::{Deserialize, Serialize};
 
-pub async fn signin(username: &str, password: &str) -> Result<String, (u16, String)> {
+use super::repository;
+use crate::{auth::services::entities::user::UserSession, shared::etities::userdb::User};
+
+// Jwt
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Claims<'a> {
+    username: &'a str,
+    name: &'a str,
+    lastname: &'a str,
+    id: &'a str,
+    exp: usize,
+}
+
+pub async fn signin(username: &str, password: &str) -> Result<impl Serialize, (u16, String)> {
     let user: User = repository::signin::signin(username, password).await?;
 
-    Ok("hola".to_string())
+    let claims = Claims {
+        id: &user.id,
+        lastname: &user.lastname,
+        username: &user.username,
+        name: &user.name,
+        exp: 0,
+    };
+
+    let token = match encode(
+        &Header::default(),
+        &claims,
+        &EncodingKey::from_secret("clave".as_ref()),
+    ) {
+        Ok(t) => t,
+        Err(e) => return Err((500, e.to_string())),
+    };
+
+    Ok({
+        UserSession {
+            id: user.id,
+            username: user.username,
+            token: token,
+            name: user.name,
+            lastname: user.lastname,
+        }
+    })
 }

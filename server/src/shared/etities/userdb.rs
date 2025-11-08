@@ -2,9 +2,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
-    name: String,
-    lastname: String,
-    username: String,
+    pub id: String,
+    pub name: String,
+    pub lastname: String,
+    pub username: String,
 }
 
 impl ToString for User {

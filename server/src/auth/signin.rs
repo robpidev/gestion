@@ -16,7 +16,7 @@ struct Auth {
 #[post("")]
 async fn signin(auth: web::Form<Auth>) -> impl Responder {
     match services::signin::signin(&auth.username, &auth.password).await {
-        Ok(jwt) => HttpResponse::Ok().json(jwt),
+        Ok(data) => HttpResponse::Ok().json(data),
         Err((c, m)) => HttpResponse::build(StatusCode::from_u16(c).unwrap()).body(m),
     }
 }

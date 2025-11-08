@@ -1,5 +1,15 @@
 use crate::shared::etities::userdb::User;
 use crate::shared::repository::db::DB;
+use serde::Deserialize;
+use surrealdb::sql::Thing;
+
+#[derive(Deserialize)]
+struct UserDB {
+    id: Thing,
+    username: String,
+    name: String,
+    lastname: String,
+}
 
 pub async fn signin(username: &str, password: &str) -> Result<User, (u16, String)> {
     let query = r#"
@@ -13,18 +23,25 @@ pub async fn signin(username: &str, password: &str) -> Result<User, (u16, String
         .bind(("password", password.to_string()))
         .await;
 
-    let mut user_opt = match res {
-        Ok(user) => user,
+    let mut resp = match res {
+        Ok(r) => r,
         Err(e) => return Err((500, format!("DB query error: {}", e))),
     };
 
-    let user: Option<User> = match user_opt.take(0) {
+    let user: Option<UserDB> = match resp.take(0) {
         Ok(user) => user,
         Err(e) => return Err((500, format!("DB error parsing user: {e}"))),
     };
 
     match user {
-        Some(user) => Ok(user),
-        None => Err((404, "User not found".to_string())),
+        Some(user) => Ok({
+            User {
+                id: user.id.id.to_string(),
+                username: user.username,
+                name: user.name,
+                lastname: user.lastname,
+            }
+        }),
+        None => Err((404, "User or password invalid".to_string())),
     }
 }
