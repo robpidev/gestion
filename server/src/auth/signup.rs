@@ -21,10 +21,6 @@ async fn signup(user: web::Form<NewUser>) -> impl Responder {
     let data =
         services::signup::register(&user.name, &user.lastname, &user.username, &user.password)
             .await;
-    response(data)
-}
-
-pub fn response(data: Result<String, (u16, String)>) -> impl Responder {
     match data {
         Ok(data) => HttpResponse::Ok().json(data),
         Err((code, msg)) => HttpResponse::build(StatusCode::from_u16(code).unwrap()).body(msg),

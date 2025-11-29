@@ -1,2 +1,4 @@
-pub mod register;
+mod register;
 pub mod signin;
+
+pub use register::RegisterRepository;

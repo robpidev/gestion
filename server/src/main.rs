@@ -26,7 +26,7 @@ async fn main() -> std::io::Result<()> {
 
     // config db
     if let Err(e) = db::db_connect().await {
-        panic!("{e}");
+        panic!("\x1b[31mError connecting to database: {e}");
     }
 
     HttpServer::new(|| {
@@ -35,7 +35,8 @@ async fn main() -> std::io::Result<()> {
             .configure(auth::routes)
             .configure(user::routes)
     })
-    .bind((server_config.host, server_config.port))?
+    .bind((server_config.host, server_config.port))
+    .inspect(|_| println!("\x1b[32mServer is running"))?
     .run()
     .await
 }
