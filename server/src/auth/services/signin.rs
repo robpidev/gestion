@@ -1,41 +1,33 @@
 use jsonwebtoken::{EncodingKey, Header, encode};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::{
     auth::services::{entities::user::UserSession, repository::SigninRepository},
-    shared::etities::userdb::User,
+    config::token::TokenVars,
+    shared::etities::userdb::{User, UserClaims},
 };
-
-// Jwt
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Claims<'a> {
-    username: &'a str,
-    name: &'a str,
-    lastname: &'a str,
-    id: &'a str,
-    exp: usize,
-}
 
 // Service
 pub struct SigninService;
 
 impl SigninService {
     pub async fn signin(username: &str, password: &str) -> Result<impl Serialize, (u16, String)> {
+        let secret = match TokenVars::from_env() {
+            Ok(s) => s,
+            Err(e) => return Err((500, e)),
+        };
+
         let user: User = SigninRepository::new().signin(username, password).await?;
 
-        let claims = Claims {
-            id: &user.id,
-            lastname: &user.lastname,
-            username: &user.username,
-            name: &user.name,
+        let claims = UserClaims {
+            user: &user,
             exp: 0,
         };
 
         let token = match encode(
             &Header::default(),
             &claims,
-            &EncodingKey::from_secret("clave".as_ref()),
+            &EncodingKey::from_secret(secret.seed().as_ref()),
         ) {
             Ok(t) => t,
             Err(e) => return Err((500, e.to_string())),

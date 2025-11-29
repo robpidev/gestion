@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 actix-web = "4.11.0"
 dotenvy = "0.15.7"
+futures-util = "0.3.31"
 jsonwebtoken = { version = "10", features = ["aws_lc_rs"] }
 serde = "1.0.228"
 surrealdb = "2.3.10"

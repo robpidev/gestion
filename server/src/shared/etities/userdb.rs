@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize, forward_to_deserialize_any};
+use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct User {
     pub id: String,
     pub name: String,
@@ -19,4 +19,10 @@ impl ToString for User {
 
 pub trait ToUser {
     fn to_user(&self) -> User;
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UserClaims<T> {
+    pub user: T,
+    pub exp: usize,
 }

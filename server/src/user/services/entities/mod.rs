@@ -1,4 +1,4 @@
-use crate::shared::etities::{names::Names, username::Username};
+use crate::shared::etities::names::Names;
 
 macro_rules! set_format {
     ($type:ty, $opt:expr) => {

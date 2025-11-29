@@ -31,7 +31,7 @@ impl SigninRepository {
         SigninRepository {
             query: r#"
             SELECT * FROM user
-            WHERE username = $username AND password = $password;
+            WHERE username = $username AND crypto::bcrypt::compare(password, $password);
             "#,
         }
     }

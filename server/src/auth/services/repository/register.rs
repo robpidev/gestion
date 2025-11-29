@@ -62,7 +62,7 @@ impl RegisterRepository {
     }
 
     fn parse_error(error: impl ToString + std::fmt::Display) -> (u16, String) {
-        if error.to_string().contains("username") {
+        if error.to_string().contains("username_index") {
             return (409, "Username already exists".to_string());
         }
 

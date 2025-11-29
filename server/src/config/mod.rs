@@ -2,8 +2,10 @@ use std::{fmt::Display, str::FromStr};
 
 pub mod db;
 pub mod server;
+pub mod token;
 
-/// Macros
+/// Set environment variable for struct
+/// e.j ```set_vars!(struct.field, VAR_NAME)```
 #[macro_export]
 macro_rules! set_vars {
     ($field:expr, $env:expr) => {
