@@ -1,4 +1,7 @@
 mod entities;
 mod repository;
-pub mod signin;
-pub mod signup;
+mod signin;
+mod signup;
+
+pub use signin::SigninService;
+pub use signup::SignupService;

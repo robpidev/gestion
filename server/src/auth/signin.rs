@@ -1,7 +1,7 @@
 use actix_web::{HttpResponse, Responder, http::StatusCode, post, web};
 use serde::{Deserialize, Serialize};
 
-use crate::auth::services;
+use crate::auth::services::SigninService;
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.service(web::scope("/signin").service(signin));
@@ -15,7 +15,7 @@ struct Auth {
 
 #[post("")]
 async fn signin(auth: web::Form<Auth>) -> impl Responder {
-    match services::signin::signin(&auth.username, &auth.password).await {
+    match SigninService::signin(&auth.username, &auth.password).await {
         Ok(data) => HttpResponse::Ok().json(data),
         Err((c, m)) => HttpResponse::build(StatusCode::from_u16(c).unwrap()).body(m),
     }
