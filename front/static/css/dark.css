@@ -1,10 +1,13 @@
 :root {
   --color-text-primary: #fff;
   --color-text-secondary: #b3b3b3;
+
   --color-bg-primary: #1db954;
   --color-bg-focus: #1da950;
+  --color-bg-hover: #1da950;
   --color-bg-active: #1da914;
   --color-bg-warning: #ff0000;
+
   --color-border-primary: #1db954;
   --color-border-secondary: #b3b3b3;
   --color-border-hover: #1da914;
