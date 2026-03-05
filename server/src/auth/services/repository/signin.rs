@@ -1,11 +1,12 @@
 use crate::shared::etities::userdb::{ToUser, User};
 use crate::shared::repository::db::DB;
 use serde::Deserialize;
-use surrealdb::sql::Thing;
+use surrealdb_types::{RecordId, RecordIdKey, SurrealValue};
+// use surrealdb::sql::Thing;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, SurrealValue)]
 struct UserDB {
-    id: Thing,
+    id: RecordId,
     username: String,
     name: String,
     lastname: String,
@@ -14,7 +15,10 @@ struct UserDB {
 impl ToUser for UserDB {
     fn to_user(&self) -> User {
         User {
-            id: self.id.id.to_string(),
+            id: match &self.id.key {
+                RecordIdKey::String(id) => id.clone(),
+                _ => "".to_string(),
+            },
             username: self.username.clone(),
             name: self.name.clone(),
             lastname: self.lastname.clone(),

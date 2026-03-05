@@ -1,16 +1,17 @@
 use serde::Deserialize;
-use serde::de::DeserializeOwned;
-use surrealdb::sql::Thing;
-use surrealdb::{Error, Response};
+// use serde::de::DeserializeOwned;
+// use surrealdb::sql::Thing;
+// use surrealdb::Error;
+use surrealdb_types::{RecordId, RecordIdKey, SurrealValue};
 
 use crate::{
     auth::services::entities::user::NewUser,
     shared::{etities::userdb::User, repository::db::DB},
 };
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize, SurrealValue)]
 struct UserDB {
-    id: Thing,
+    id: RecordId,
     name: String,
     lastname: String,
     username: String,
@@ -23,7 +24,10 @@ trait ToUser {
 impl ToUser for UserDB {
     fn to_user(&self) -> User {
         User {
-            id: self.id.id.to_string(),
+            id: match &self.id.key {
+                RecordIdKey::String(id) => id.clone(),
+                _ => "".to_string(),
+            },
             name: self.name.to_string(),
             lastname: self.lastname.to_string(),
             username: self.username.to_string(),
@@ -49,7 +53,7 @@ impl RegisterRepository {
         }
     }
 
-    pub async fn register_user(&self, user: NewUser) -> Result<User, (u16, String)> {
+    pub async fn create_user(&self, user: NewUser) -> Result<User, (u16, String)> {
         let result = DB
             .query(self.query)
             .bind(("username", user.username()))
@@ -58,26 +62,12 @@ impl RegisterRepository {
             .bind(("password", user.password()))
             .await;
 
-        Self::respose_parse::<UserDB>(result).await
-    }
-
-    fn parse_error(error: impl ToString + std::fmt::Display) -> (u16, String) {
-        if error.to_string().contains("username_index") {
-            return (409, "Username already exists".to_string());
-        }
-
-        (500, format!("DB register error: {error}"))
-    }
-
-    async fn respose_parse<T: ToUser + DeserializeOwned>(
-        res: Result<Response, Error>,
-    ) -> Result<User, (u16, String)> {
-        let mut res = match res {
+        let mut resp = match result {
             Ok(res) => res,
             Err(e) => return Err((500, format!("DB query error: {e}"))),
         };
 
-        let data: Option<T> = match res.take(0) {
+        let data: Option<UserDB> = match resp.take(0) {
             Ok(data) => data,
             Err(e) => return Err(Self::parse_error(e)),
         };
@@ -86,5 +76,14 @@ impl RegisterRepository {
             Some(data) => Ok(data.to_user()),
             None => Err((500, "DB parse error".to_string())),
         }
+    }
+
+    fn parse_error(error: impl ToString + std::fmt::Display) -> (u16, String) {
+        // TODO: parse error RETURN Connection uninitialised
+        if error.to_string().contains("index_username") {
+            return (409, "Username already exists".to_string());
+        }
+
+        (500, format!("DB register error: {error}"))
     }
 }

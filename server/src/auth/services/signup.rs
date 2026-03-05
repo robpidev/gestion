@@ -16,6 +16,6 @@ impl SignupService {
             Err(err) => return Err((400, err.to_string())),
         };
 
-        RegisterRepository::new().register_user(user).await
+        RegisterRepository::new().create_user(user).await
     }
 }

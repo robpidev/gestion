@@ -1,11 +1,12 @@
 use crate::shared::{etities::userdb::ToUser, repository::DB};
 use serde::{Deserialize, Serialize};
+use surrealdb_types::SurrealValue;
 
 use super::UserDB;
 
 pub struct UsernameRepository;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, SurrealValue)]
 #[allow(dead_code)]
 struct UsernameDB {
     username: String,
@@ -41,8 +42,8 @@ impl UsernameRepository {
         username: String,
     ) -> Result<impl Serialize, (u16, String)> {
         let query = r#"
-        UPDATE type::thing("user", $id)
-        SET username = $username
+            UPDATE type::record("user", $id)
+            SET username = $username
         "#;
 
         let mut resp = match DB
@@ -55,6 +56,7 @@ impl UsernameRepository {
             Err(e) => return Err((500, format!("DB error: {}", e))),
         };
 
+        // TODO: refresh token with new username
         let opt: Option<UserDB> = match resp.take(0) {
             Ok(user) => user,
             Err(e) => return Err((500, format!("DB error parsing user: {e}"))),

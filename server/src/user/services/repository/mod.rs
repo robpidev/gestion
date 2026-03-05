@@ -4,11 +4,11 @@ pub use username::UsernameRepository;
 use crate::shared::etities::userdb::{ToUser, User};
 use crate::{shared::repository::db::DB, user::services::entities::UserUpdate};
 use serde::{Deserialize, Serialize};
-use surrealdb::sql::Thing;
+use surrealdb_types::{RecordId, RecordIdKey, SurrealValue};
 
-#[derive(Deserialize)]
+#[derive(Deserialize, SurrealValue)]
 pub struct UserDB {
-    id: Thing,
+    id: RecordId,
     name: String,
     lastname: String,
     username: String,
@@ -17,7 +17,10 @@ pub struct UserDB {
 impl ToUser for UserDB {
     fn to_user(&self) -> User {
         User {
-            id: self.id.id.to_string(),
+            id: match &self.id.key {
+                RecordIdKey::String(id) => id.clone(),
+                _ => "".to_string(),
+            },
             name: self.name.to_string(),
             lastname: self.lastname.to_string(),
             username: self.username.to_string(),

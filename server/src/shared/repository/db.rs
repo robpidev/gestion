@@ -3,13 +3,13 @@ use std::sync::LazyLock;
 use surrealdb::{
     Surreal,
     engine::{
-        any::Any,
-        // remote::ws::{Client, Ws},
+        // any::Any,
+        remote::ws::{Client, Ws},
     },
     opt::auth::Root,
 };
 
-pub static DB: LazyLock<Surreal<Any>> = LazyLock::new(Surreal::init);
+pub static DB: LazyLock<Surreal<Client>> = LazyLock::new(Surreal::init);
 
 pub async fn db_connect() -> Result<(), String> {
     println!("Connecting to DB...");
@@ -20,14 +20,14 @@ pub async fn db_connect() -> Result<(), String> {
 
     println!("config: {:#?}", config);
 
-    match DB.connect(config.wss).await {
+    match DB.connect::<Ws>(config.wss).await {
         Ok(_) => println!("Conected to DB"),
         Err(e) => return Err(format!("DB connect error: {}", e)),
     };
 
     let root = Root {
-        username: &config.user,
-        password: &config.password,
+        username: config.user,
+        password: config.password,
     };
 
     match DB.signin(root).await {
