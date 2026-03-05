@@ -7,10 +7,10 @@ use surrealdb_types::SurrealValue;
 
 use crate::shared::repository::DB;
 
-use super::Income;
+use super::Expense;
 
 #[derive(Debug, SurrealValue, Deserialize)]
-pub struct NewIncome {
+pub struct NewExpense {
     pub amount: f64,
     pub description: String,
     pub processed: bool,
@@ -18,7 +18,7 @@ pub struct NewIncome {
 }
 
 #[derive(Debug, SurrealValue)]
-struct IncomeDB {
+struct ExpenseDB {
     id: RecordId,
     amount: f64,
     description: String,
@@ -26,9 +26,9 @@ struct IncomeDB {
     date: Datetime,
 }
 
-impl From<IncomeDB> for Income {
-    fn from(value: IncomeDB) -> Self {
-        return Income {
+impl From<ExpenseDB> for Expense {
+    fn from(value: ExpenseDB) -> Self {
+        return Expense {
             id: match &value.id.key {
                 RecordIdKey::String(id) => id.clone(),
                 _ => "".to_string(),
@@ -41,12 +41,12 @@ impl From<IncomeDB> for Income {
     }
 }
 
-pub struct IncomesRepository;
+pub struct ExpensesRepository;
 
-impl IncomesRepository {
-    pub async fn get(user_id: String) -> Result<Vec<Income>, (u16, String)> {
+impl ExpensesRepository {
+    pub async fn get(user_id: String) -> Result<Vec<Expense>, (u16, String)> {
         let query = r#"
-select * from type::record("user", $user_id)->had->income
+select * from type::record("user", $user_id)->had->expense
             "#;
 
         let mut result = match DB.query(query).bind(("user_id", user_id)).await {
@@ -54,7 +54,7 @@ select * from type::record("user", $user_id)->had->income
             Err(e) => return Err((500, e.to_string())),
         };
 
-        let resp: Vec<IncomeDB> = match result.take(0) {
+        let resp: Vec<ExpenseDB> = match result.take(0) {
             Ok(result) => result,
             Err(e) => return Err((500, e.to_string())),
         };
@@ -62,109 +62,112 @@ select * from type::record("user", $user_id)->had->income
         return Ok(resp.into_iter().map(|i| i.into()).collect());
     }
 
-    pub async fn create(user_id: String, new_income: NewIncome) -> Result<Income, (u16, String)> {
+    pub async fn create(
+        user_id: String,
+        new_expense: NewExpense,
+    ) -> Result<Expense, (u16, String)> {
         let query = r#"
 BEGIN TRANSACTION;
-LET $income = (CREATE income content {
+LET $expense = (CREATE expense content {
     description: $description,
     amount: $amount,
     date: <datetime>$date,
     processed: $processed
 });
 LET $user = type::record("user", $user_id);
-RELATE $user->had->$income;
-return $income;
+RELATE $user->had->$expense;
+return $expense;
 COMMIT TRANSACTION;
             "#;
 
         let result = match DB
             .query(query)
             .bind(("user_id", user_id))
-            .bind(("description", new_income.description.clone()))
-            .bind(("date", new_income.date + "T00:00:00Z"))
-            .bind(("amount", new_income.amount))
-            .bind(("processed", new_income.processed))
+            .bind(("description", new_expense.description.clone()))
+            .bind(("date", new_expense.date + "T00:00:00Z"))
+            .bind(("amount", new_expense.amount))
+            .bind(("processed", new_expense.processed))
             .await
         {
             Ok(result) => result,
             Err(e) => return Err((500, e.to_string())),
         };
-
-        Self::response_income_parse(result, 4)
+        dbg!(&result);
+        Self::response_expense_parse(result, 4)
     }
 
-    pub async fn delete(user_id: String, income_id: String) -> Result<Income, (u16, String)> {
+    pub async fn delete(user_id: String, expense_id: String) -> Result<Expense, (u16, String)> {
         let query = r#"
 LET $user = type::record("user",$user_id);
-LET $income = type::record("income", $income_id);
-LET $relation = select * from $user->had where out = $income;
+LET $expense = type::record("expense", $expense_id);
+LET $relation = select * from $user->had where out = $expense;
 IF $relation {
-    delete $income RETURN before;
+    delete $expense RETURN before;
 } ELSE {
-    THROW "Income for user not found"
+    THROW "Expense for user not found"
 }            "#;
 
         let result = match DB
             .query(query)
             .bind(("user_id", user_id))
-            .bind(("income_id", income_id))
+            .bind(("expense_id", expense_id))
             .await
         {
             Ok(result) => result,
             Err(e) => return Err((500, format!("DB Query error: {}", e.to_string()))),
         };
 
-        Self::response_income_parse(result, 3)
+        Self::response_expense_parse(result, 3)
     }
 
     pub async fn update(
         user_id: String,
-        income_id: String,
-        new_income: NewIncome,
-    ) -> Result<Income, (u16, String)> {
+        expense_id: String,
+        new_expense: NewExpense,
+    ) -> Result<Expense, (u16, String)> {
         let query = r#"
             LET $user = type::record("user", $user_id);
-LET $income = type::record("income", $income_id);
-LET $relation = select * from $user->had where out = $income;
+LET $expense = type::record("expense", $expense_id);
+LET $relation = select * from $user->had where out = $expense;
 IF $relation {{
-    UPDATE $income set description = $description, amount = $amount, date = <datetime>$date, processed = $processed return after
+    UPDATE $expense set description = $description, amount = $amount, date = <datetime>$date, processed = $processed return after
 }} else {{
-    THROW "Income not found for user"
+    THROW "Expense not found for user"
 }}
             "#;
 
         let result = match DB
             .query(query)
             .bind(("user_id", user_id))
-            .bind(("description", new_income.description.clone()))
-            .bind(("date", new_income.date + "T00:00:00Z"))
-            .bind(("amount", new_income.amount))
-            .bind(("processed", new_income.processed))
-            .bind(("income_id", income_id))
+            .bind(("description", new_expense.description.clone()))
+            .bind(("date", new_expense.date + "T00:00:00Z"))
+            .bind(("amount", new_expense.amount))
+            .bind(("processed", new_expense.processed))
+            .bind(("expense_id", expense_id))
             .await
         {
             Ok(result) => result,
             Err(e) => return Err((500, format!("DB Query error: {}", e.to_string()))),
         };
 
-        Self::response_income_parse(result, 3)
+        Self::response_expense_parse(result, 3)
     }
 
     pub async fn update_field<T: Clone + SurrealValue>(
         user_id: String,
-        income_id: String,
+        expense_id: String,
         key: &'static str,
         value: T,
-    ) -> Result<Income, (u16, String)> {
+    ) -> Result<Expense, (u16, String)> {
         let query = format!(
             r#"
             LET $user = type::record("user", $user_id);
-LET $income = type::record("income", $income_id);
-LET $relation = select * from $user->had where out = $income;
+LET $expense = type::record("expense", $expense_id);
+LET $relation = select * from $user->had where out = $expense;
 IF $relation {{
-    UPDATE $income set {} = $value return after
+    UPDATE $expense set {} = $value return after
 }} else {{
-    THROW "Income not found for user"
+    THROW "Expense not found for user"
 }}
             "#,
             key
@@ -174,26 +177,28 @@ IF $relation {{
             .query(query)
             .bind(("user_id", user_id))
             .bind(("value", value))
-            .bind(("income_id", income_id))
+            .bind(("expense_id", expense_id))
             .await
         {
             Ok(result) => result,
             Err(e) => return Err((500, format!("DB Query error: {}", e.to_string()))),
         };
 
-        Self::response_income_parse(result, 3)
+        Self::response_expense_parse(result, 3)
     }
 
-    fn response_income_parse(
+    fn response_expense_parse(
         result: IndexedResults,
         index: usize,
-    ) -> Result<Income, (u16, String)> {
+    ) -> Result<Expense, (u16, String)> {
         let mut idex_results = match result.check() {
             Ok(r) => r,
             Err(e) => return Err(Self::error_parse(e.to_string())),
         };
 
-        let resp: Option<IncomeDB> = match idex_results.take(index) {
+        dbg!(&idex_results);
+
+        let resp: Option<ExpenseDB> = match idex_results.take(index) {
             Ok(resp) => resp,
             Err(e) => {
                 dbg!(&e);
@@ -202,13 +207,13 @@ IF $relation {{
         };
 
         match resp {
-            Some(income) => return Ok(income.into()),
+            Some(expense) => return Ok(expense.into()),
             None => return Err((500, "DB Take return NONE".to_string())),
         }
     }
 
     pub fn error_parse(e: String) -> (u16, String) {
-        let message = "Income for user not found".to_string();
+        let message = "Expense for user not found".to_string();
         if e.contains(&message) {
             return (400, message);
         } else {

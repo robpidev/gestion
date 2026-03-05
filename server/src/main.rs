@@ -1,6 +1,7 @@
 use server::auth;
 use server::config;
 use server::config::server::Server;
+use server::expenses;
 use server::incomes;
 use server::shared::repository::db;
 
@@ -36,6 +37,7 @@ async fn main() -> std::io::Result<()> {
             .configure(auth::routes)
             .configure(user::routes)
             .configure(incomes::routes)
+            .configure(expenses::routes)
     })
     .bind((server_config.host, server_config.port))
     .inspect(|_| println!("\x1b[32mServer is running"))?
