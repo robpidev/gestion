@@ -1,6 +1,7 @@
 use server::auth;
 use server::config;
 use server::config::server::Server;
+use server::incomes;
 use server::shared::repository::db;
 
 use actix_web::{self, App, HttpResponse, HttpServer, Responder, get};
@@ -34,6 +35,7 @@ async fn main() -> std::io::Result<()> {
             .service(hello)
             .configure(auth::routes)
             .configure(user::routes)
+            .configure(incomes::routes)
     })
     .bind((server_config.host, server_config.port))
     .inspect(|_| println!("\x1b[32mServer is running"))?
