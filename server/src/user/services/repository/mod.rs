@@ -28,6 +28,31 @@ impl ToUser for UserDB {
     }
 }
 
+pub struct UserRepository;
+
+impl UserRepository {
+    pub async fn get_user_by_id(id: String) -> Result<User, (u16, String)> {
+        let mut resp = match DB
+            .query("SELECT * FROM type::record('user', $id)")
+            .bind(("id", id))
+            .await
+        {
+            Ok(r) => r,
+            Err(e) => return Err((500, format!("DB query error: {e}"))),
+        };
+
+        let user_opt: Option<UserDB> = match resp.take(0) {
+            Ok(u) => u,
+            Err(e) => return Err((500, format!("DB parse error: {e}"))),
+        };
+
+        match user_opt {
+            Some(u) => Ok(u.to_user()),
+            None => return Err((404, "User not found".to_string())),
+        }
+    }
+}
+
 pub struct NameLastNameUpdateRepository {
     query: String,
 }

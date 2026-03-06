@@ -1,4 +1,4 @@
-mod services;
+pub mod services;
 mod signin;
 mod signup;
 

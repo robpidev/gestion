@@ -3,6 +3,7 @@ use actix_web::{HttpResponse, Responder, get, http::StatusCode, patch, web};
 use serde::{Deserialize, Serialize};
 
 mod services;
+use services::UserService;
 use services::UserUpdateService;
 use services::UsernameService;
 
@@ -18,6 +19,7 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
         web::scope("/user")
             .wrap(UserJwt)
             .service(user)
+            .service(refresh)
             .service(user_update)
             .service(username_update)
             .service(username_exists),
@@ -68,4 +70,9 @@ async fn username_update(
     responder_parse(
         UsernameService::update_username(id.to_string(), username.username.clone()).await,
     )
+}
+
+#[get("/refresh")]
+async fn refresh(id: ReqData<String>) -> impl Responder {
+    responder_parse(UserService::refresh(id.to_string()).await)
 }

@@ -1,4 +1,4 @@
-mod entities;
+pub mod entities;
 mod repository;
 mod signin;
 mod signup;
