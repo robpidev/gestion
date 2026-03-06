@@ -54,20 +54,24 @@ impl RegisterRepository {
     }
 
     pub async fn create_user(&self, user: NewUser) -> Result<User, (u16, String)> {
-        let result = DB
+        let result = match DB
             .query(self.query)
             .bind(("username", user.username()))
             .bind(("name", user.name()))
             .bind(("lastname", user.lastname()))
             .bind(("password", user.password()))
-            .await;
-
-        let mut resp = match result {
+            .await
+        {
             Ok(res) => res,
             Err(e) => return Err((500, format!("DB query error: {e}"))),
         };
 
-        let data: Option<UserDB> = match resp.take(0) {
+        let mut idx_results = match result.check() {
+            Ok(res) => res,
+            Err(e) => return Err(Self::parse_error(e)),
+        };
+
+        let data: Option<UserDB> = match idx_results.take(0) {
             Ok(data) => data,
             Err(e) => return Err(Self::parse_error(e)),
         };

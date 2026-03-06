@@ -41,25 +41,29 @@ impl SigninRepository {
     }
 
     pub async fn signin(self, username: &str, password: &str) -> Result<User, (u16, String)> {
-        let res = DB
+        let res = match DB
             .query(self.query)
             .bind(("username", username.to_string()))
             .bind(("password", password.to_string()))
-            .await;
-
-        let mut resp = match res {
-            Ok(r) => r,
+            .await
+        {
+            Ok(res) => res,
             Err(e) => return Err((500, format!("DB query error: {}", e))),
         };
 
-        let user: Option<UserDB> = match resp.take(0) {
+        let mut idx_results = match res.check() {
+            Ok(res) => res,
+            Err(e) => return Err((500, format!("DB response error: {}", e))),
+        };
+
+        let user: Option<UserDB> = match idx_results.take(0) {
             Ok(user) => user,
             Err(e) => return Err((500, format!("DB error parsing user: {e}"))),
         };
 
         match user {
             Some(u) => Ok(u.to_user()),
-            None => Err((404, "User or password invalid".to_string())),
+            None => Err((401, "User or password invalid".to_string())),
         }
     }
 }
