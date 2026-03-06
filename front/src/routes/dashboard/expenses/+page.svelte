@@ -2,6 +2,8 @@
 	import Add from './Add.svelte';
 	import Expenses from './Expenses.svelte';
 
+	let { data } = $props();
+
 	let concepts = [
 		{
 			id: 1,
@@ -34,7 +36,10 @@
 			date: new Date('2022-01-01')
 		}
 	];
+
+	// Data from load server
 </script>
 
 <Add />
+<h1>{data?.title}</h1>
 <Expenses {concepts} />

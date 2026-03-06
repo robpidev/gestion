@@ -1,8 +1,13 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
+	import { type User } from '$lib/interfaces/user.js';
+	import { userState } from '$lib/store/user.svelte';
+	import { redirect } from '@sveltejs/kit';
 
 	let { form } = $props();
-	let disabled = false;
+	let disabled = $state(false);
+	$inspect(userState.user).with(console.log);
 </script>
 
 <div>
@@ -12,9 +17,14 @@
 		method="POST"
 		use:enhance={() => {
 			disabled = true;
-			return async ({ update }) => {
-				await update();
+			return async ({ update, result }) => {
+				if (result.type === 'success') {
+					userState.user = result.data?.user as User;
+					await goto('/dashboard');
+				}
+
 				disabled = false;
+				await update();
 			};
 		}}
 	>
@@ -26,7 +36,7 @@
 			password:
 			<input type="password" name="password" placeholder="inserte password" required />
 		</label>
-		<button type="submit">Login</button>
+		<button {disabled} type="submit">Login</button>
 	</form>
 	{#if form?.error}
 		<p class="error">{form.error}</p>
@@ -51,14 +61,14 @@
 		/* background: rgba(255, 255, 255, 0.1); */
 		position: relative;
 	}
-
-	.field-error {
-		position: absolute;
-		right: 0;
-		bottom: -1.2rem;
-		width: max-content;
-		color: red;
-	}
+	/**/
+	/* .field-error { */
+	/* 	position: absolute; */
+	/* 	right: 0; */
+	/* 	bottom: -1.2rem; */
+	/* 	width: max-content; */
+	/* 	color: red; */
+	/* } */
 	.title {
 		font-size: 2rem;
 		font-weight: bold;

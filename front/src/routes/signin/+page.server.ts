@@ -17,7 +17,7 @@ export const actions: Actions = {
 
     if (response.status === 200) {
       let data: UserToken = await response.json();
-      console.log(data)
+      // console.log(data)
       cookies.set('token', data.token, { path: '/' });
       return {
         user: data,
@@ -25,9 +25,14 @@ export const actions: Actions = {
       }
     }
 
+    if (response.status === 401) {
+      // console.log(response.text());
+      return fail(400, { error: await response.text() });
+    }
+
 
     if (response.status === 500) {
-      console.log(response.text());
+      // console.log(response.text());
       return fail(500, { error: 'Internal server error' });
     }
 

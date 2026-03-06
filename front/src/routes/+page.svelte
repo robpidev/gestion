@@ -1,1 +1,3 @@
 <h1>Welcome</h1>
+<a href="/signup">Signup</a>
+<a href="/signin">Signin</a>

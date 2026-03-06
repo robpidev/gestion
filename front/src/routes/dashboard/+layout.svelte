@@ -1,7 +1,14 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import favicon from '$lib/assets/favicon.svg';
-
+	import { userState } from '$lib/store/user.svelte';
+	import { onMount } from 'svelte';
 	let { children } = $props();
+	onMount(() => {
+		if (!userState.user) {
+			goto('/signin');
+		}
+	});
 </script>
 
 <svelte:head>
@@ -13,7 +20,7 @@
 		<li><a href="/dashboard">Dashboard</a></li>
 		<li><a href="/dashboard/expenses">Expenses</a></li>
 		<li><a href="/dashboard/incomes">Income</a></li>
-		<li><a href="/login">login</a></li>
+		<li><a href="/signin">Logout</a></li>
 	</ul>
 </nav>
 

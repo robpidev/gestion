@@ -17,6 +17,10 @@
 	let password2 = $state('');
 	let valid_password2 = $state(true);
 
+	let modified = $state(true);
+
+	let loading = $state(false);
+
 	$effect(() => {
 		valid_name = validate(name);
 	});
@@ -26,7 +30,12 @@
 	});
 
 	$effect(() => {
-		valid_username = validate(username);
+		// validate username onli letters dots and numbers de 5 a 30 characters
+		if (username.length == 0) return;
+
+		let regex = /^[\.a-zA-Z0-9_-]{5,30}$/;
+		valid_username = regex.test(username) ? true : false;
+		modified = true;
 	});
 
 	$effect(() => {
@@ -52,9 +61,12 @@
 		method="POST"
 		use:enhance={() => {
 			disabled = true;
+			loading = true;
 			return async ({ update }) => {
-				await update();
 				disabled = false;
+				modified = false;
+				loading = false;
+				await update();
 			};
 		}}
 	>
@@ -94,7 +106,7 @@
 		<label>
 			password:
 			<input
-				type="text"
+				type="password"
 				bind:value={password}
 				name="password"
 				placeholder="Insert your password"
@@ -107,7 +119,7 @@
 		<label>
 			Password:
 			<input
-				type="text"
+				type="password"
 				bind:value={password2}
 				name="password"
 				placeholder="Comfirm your password"
@@ -124,14 +136,21 @@
 				!valid_username ||
 				!valid_password ||
 				!valid_password2 ||
-				disabled}>Submit</button
+				disabled ||
+				!modified}>Submit</button
 		>
 	</form>
-	<p class="error">
-		{#if form?.error}
+	{#if form?.error && !modified}
+		<p class="error">
 			{form.error}
-		{/if}
-	</p>
+		</p>
+	{/if}
+
+	{#if loading}
+		<p>Loading...</p>
+	{/if}
+
+	<p>Already have an account? <a href="/signin">Login</a></p>
 </div>
 
 <style>

@@ -21,7 +21,6 @@ export const actions: Actions = {
     const response = await fetch(url, options);
 
     if (response.status === 500) {
-      console.log(response.text());
       return fail(500, { error: 'Internal server error' });
     }
 
@@ -34,9 +33,8 @@ export const actions: Actions = {
     }
 
     if (response.status === 200) {
-      redirect(303, '/login');
+      redirect(303, '/signin');
     }
-
 
     error(response.status, await response.text())
 
