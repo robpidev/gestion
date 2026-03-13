@@ -22,7 +22,7 @@
 	let sending = $state(false);
 </script>
 
-<div class="add-expense-container">
+<div class="add-income-container">
 	<form
 		method="POST"
 		action="?/create"
@@ -31,7 +31,6 @@
 			return async ({ update }) => {
 				sending = false;
 				await update();
-				// Reset form except date
 				formdata.description = '';
 				formdata.amount = 0;
 				formdata.processed = false;
@@ -40,13 +39,13 @@
 	>
 		<div class="form-grid">
 			<div class="input-group">
-				<label for="description">Description</label>
+				<label for="description">Source / Description</label>
 				<input
 					id="description"
 					bind:value={formdata.description}
 					name="description"
 					type="text"
-					placeholder="What did you buy?"
+					placeholder="Salary, Freelance, etc."
 					required
 				/>
 			</div>
@@ -77,7 +76,7 @@
 				<label class="toggle">
 					<input name="processed" type="checkbox" bind:checked={formdata.processed} />
 					<span class="slider"></span>
-					<span class="label-text">Processed</span>
+					<span class="label-text">Received</span>
 				</label>
 			</div>
 
@@ -85,7 +84,7 @@
 				<button type="submit" class="submit-btn" {disabled} class:loading={sending}>
 					{#if !sending}
 						<Icon icon="material-symbols:add-rounded" />
-						<span>Add Expense</span>
+						<span>Add Income</span>
 					{:else}
 						<Icon icon="eos-icons:loading" />
 						<span>Adding...</span>
@@ -97,7 +96,7 @@
 </div>
 
 <style>
-	.add-expense-container {
+	.add-income-container {
 		background-color: #1e1e1e;
 		border-radius: 12px;
 		padding: 1.5rem;
@@ -147,17 +146,8 @@
 		}
 	}
 
-	.input-group {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.input-group label {
-		font-size: 0.85rem;
-		color: var(--color-text-secondary);
-		font-weight: 500;
-	}
+	.input-group { display: flex; flex-direction: column; gap: 0.5rem; }
+	.input-group label { font-size: 0.85rem; color: var(--color-text-secondary); font-weight: 500; }
 
 	input {
 		background-color: #2a2a2a;
@@ -176,78 +166,18 @@
 		box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.2);
 	}
 
-	.amount-input {
-		position: relative;
-		display: flex;
-		align-items: center;
-	}
+	.amount-input { position: relative; display: flex; align-items: center; }
+	.currency { position: absolute; left: 1rem; color: var(--color-text-secondary); }
+	.amount-input input { padding-left: 2rem; }
+	.checkbox-group { justify-content: center; padding-bottom: 0.5rem; }
 
-	.currency {
-		position: absolute;
-		left: 1rem;
-		color: var(--color-text-secondary);
-	}
-
-	.amount-input input {
-		padding-left: 2rem;
-	}
-
-	.checkbox-group {
-		justify-content: center;
-		padding-bottom: 0.5rem;
-	}
-
-	/* Toggle Switch Style */
-	.toggle {
-		position: relative;
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		cursor: pointer;
-		user-select: none;
-	}
-
-	.toggle input {
-		position: absolute;
-		opacity: 0;
-		cursor: pointer;
-		height: 0;
-		width: 0;
-	}
-
-	.slider {
-		position: relative;
-		height: 24px;
-		width: 44px;
-		background-color: #444;
-		transition: 0.4s;
-		border-radius: 24px;
-	}
-
-	.slider:before {
-		position: absolute;
-		content: '';
-		height: 18px;
-		width: 18px;
-		left: 3px;
-		bottom: 3px;
-		background-color: white;
-		transition: 0.4s;
-		border-radius: 50%;
-	}
-
-	input:checked + .slider {
-		background-color: var(--color-bg-primary);
-	}
-
-	input:checked + .slider:before {
-		transform: translateX(20px);
-	}
-
-	.label-text {
-		font-size: 0.9rem;
-		color: white;
-	}
+	.toggle { position: relative; display: flex; align-items: center; gap: 0.75rem; cursor: pointer; user-select: none; }
+	.toggle input { position: absolute; opacity: 0; height: 0; width: 0; }
+	.slider { position: relative; height: 24px; width: 44px; background-color: #444; transition: 0.4s; border-radius: 24px; }
+	.slider:before { position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: 0.4s; border-radius: 50%; }
+	input:checked + .slider { background-color: var(--color-bg-primary); }
+	input:checked + .slider:before { transform: translateX(20px); }
+	.label-text { font-size: 0.9rem; color: white; }
 
 	.submit-btn {
 		background-color: var(--color-bg-primary);
@@ -264,21 +194,6 @@
 		white-space: nowrap;
 	}
 
-	.submit-btn:hover:not(:disabled) {
-		background-color: var(--color-bg-hover);
-		transform: translateY(-1px);
-	}
-
-	.submit-btn:active:not(:disabled) {
-		transform: translateY(0);
-	}
-
-	.submit-btn:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-
-	.loading {
-		opacity: 0.8;
-	}
+	.submit-btn:hover:not(:disabled) { background-color: var(--color-bg-hover); transform: translateY(-1px); }
+	.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>

@@ -1,9 +1,8 @@
 import { apiUrl } from '$lib/config';
-import type { Expense } from '$lib/interfaces/expenses';
-import { type RequestEvent, error, json } from "@sveltejs/kit";
+import { type RequestEvent, error } from "@sveltejs/kit";
 
 export async function DELETE({ params, cookies }: RequestEvent) {
-  const url = apiUrl + '/expense/' + params.id;
+  const url = apiUrl + '/income/' + params.id;
   const options = {
     method: 'DELETE',
     headers: {
@@ -29,8 +28,10 @@ export async function DELETE({ params, cookies }: RequestEvent) {
   error(500, "Server error " + response.status + ": " + await response.text());
 }
 
+import { json } from '@sveltejs/kit';
+
 export async function PATCH({ params, cookies, request }: RequestEvent) {
-  const url = apiUrl + '/expense/' + params.id;
+  const url = apiUrl + '/income/' + params.id;
   const formData = await request.formData();
   
   const options = {

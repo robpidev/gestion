@@ -1,255 +1,345 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import Icon from '@iconify/svelte';
+	import favicon from '$lib/assets/favicon.svg';
+
 	let { form } = $props();
 
 	let name = $state('');
-	let valid_name = $state(true);
-
 	let lastname = $state('');
-	let valid_lastname = $state(true);
-
 	let username = $state('');
-	let valid_username = $state(true);
-
 	let password = $state('');
-	let valid_password = $state(true);
-
 	let password2 = $state('');
-	let valid_password2 = $state(true);
-
-	let modified = $state(true);
 
 	let loading = $state(false);
 
-	$effect(() => {
-		valid_name = validate(name);
-	});
+	let valid_name = $derived(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,50}$/.test(name));
+	let valid_lastname = $derived(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,50}$/.test(lastname));
+	let valid_username = $derived(/^[\.a-zA-Z0-9_-]{5,30}$/.test(username));
+	let valid_password = $derived(password.length >= 8);
+	let valid_password2 = $derived(password === password2 && password2.length > 0);
 
-	$effect(() => {
-		valid_lastname = validate(lastname);
-	});
-
-	$effect(() => {
-		// validate username onli letters dots and numbers de 5 a 30 characters
-		if (username.length == 0) return;
-
-		let regex = /^[\.a-zA-Z0-9_-]{5,30}$/;
-		valid_username = regex.test(username) ? true : false;
-		modified = true;
-	});
-
-	$effect(() => {
-		valid_password = validate(password);
-	});
-
-	$effect(() => {
-		valid_password2 = password == password2;
-	});
-
-	function validate(value: string) {
-		let regex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{0,50}$/;
-		return regex.test(value) ? true : false;
-	}
-
-	let disabled = $state(false);
+	let canSubmit = $derived(
+		valid_name && valid_lastname && valid_username && valid_password && valid_password2 && !loading
+	);
 </script>
 
-<div>
-	<span class="title">Signup</span>
-	<form
-		action="?/create"
-		method="POST"
-		use:enhance={() => {
-			disabled = true;
-			loading = true;
-			return async ({ update }) => {
-				disabled = false;
-				modified = false;
-				loading = false;
-				await update();
-			};
-		}}
-	>
-		<label
-			>name:
-			<input type="text" bind:value={name} name="name" placeholder="Insert your name" required />
-			{#if !valid_name}
-				<span class="field-error">Invalid name</span>
-			{/if}
-		</label>
-		<label>
-			lastname:
-			<input
-				type="text"
-				bind:value={lastname}
-				name="lastname"
-				placeholder="Insert your lastname"
-				required
-			/>
-			{#if !valid_lastname}
-				<span class="field-error">Invalid lastname</span>
-			{/if}
-		</label>
-		<label>
-			username:
-			<input
-				type="text"
-				bind:value={username}
-				name="username"
-				placeholder="Insert your username"
-				required
-			/>
-			{#if !valid_username}
-				<span class="field-error">Invalid username</span>
-			{/if}
-		</label>
-		<label>
-			password:
-			<input
-				type="password"
-				bind:value={password}
-				name="password"
-				placeholder="Insert your password"
-				required
-			/>
-			{#if !valid_password}
-				<span class="field-error">Invalid password</span>
-			{/if}
-		</label>
-		<label>
-			Password:
-			<input
-				type="password"
-				bind:value={password2}
-				name="password"
-				placeholder="Comfirm your password"
-				required
-			/>
-			{#if !valid_password2}
-				<span class="field-error">Password do not match</span>
-			{/if}
-		</label>
+<svelte:head>
+	<title>Sign Up | Gestion</title>
+</svelte:head>
 
-		<button
-			disabled={!valid_name ||
-				!valid_lastname ||
-				!valid_username ||
-				!valid_password ||
-				!valid_password2 ||
-				disabled ||
-				!modified}>Submit</button
+<div class="auth-page">
+	<div class="auth-card">
+		<div class="auth-header">
+			<div class="logo">
+				<img src={favicon} alt="Logo" />
+				<span>Gestion</span>
+			</div>
+			<h1>Create Account</h1>
+			<p>Join us to start managing your finances</p>
+		</div>
+
+		<form
+			action="?/create"
+			method="POST"
+			use:enhance={() => {
+				loading = true;
+				return async ({ update }) => {
+					loading = false;
+					await update();
+				};
+			}}
 		>
-	</form>
-	{#if form?.error && !modified}
-		<p class="error">
-			{form.error}
-		</p>
-	{/if}
+			<div class="form-row">
+				<div class="input-group">
+					<label for="name">First Name</label>
+					<input
+						id="name"
+						type="text"
+						bind:value={name}
+						name="name"
+						placeholder="John"
+						required
+						class:invalid={name && !valid_name}
+					/>
+				</div>
+				<div class="input-group">
+					<label for="lastname">Last Name</label>
+					<input
+						id="lastname"
+						type="text"
+						bind:value={lastname}
+						name="lastname"
+						placeholder="Doe"
+						required
+						class:invalid={lastname && !valid_lastname}
+					/>
+				</div>
+			</div>
 
-	{#if loading}
-		<p>Loading...</p>
-	{/if}
+			<div class="input-group">
+				<label for="username">Username</label>
+				<div class="input-wrapper">
+					<Icon icon="material-symbols:person-outline-rounded" />
+					<input
+						id="username"
+						type="text"
+						bind:value={username}
+						name="username"
+						placeholder="johndoe123"
+						required
+						class:invalid={username && !valid_username}
+					/>
+				</div>
+				{#if username && !valid_username}
+					<span class="field-error">5-30 characters, letters, numbers, dots, underscores</span>
+				{/if}
+			</div>
 
-	<p>Already have an account? <a href="/signin">Login</a></p>
+			<div class="input-group">
+				<label for="password">Password</label>
+				<div class="input-wrapper">
+					<Icon icon="material-symbols:lock-outline-rounded" />
+					<input
+						id="password"
+						type="password"
+						bind:value={password}
+						name="password"
+						placeholder="••••••••"
+						required
+						class:invalid={password && !valid_password}
+					/>
+				</div>
+				{#if password && !valid_password}
+					<span class="field-error">At least 8 characters</span>
+				{/if}
+			</div>
+
+			<div class="input-group">
+				<label for="passwordConfirm">Confirm Password</label>
+				<div class="input-wrapper">
+					<Icon icon="material-symbols:lock-reset-outline-rounded" />
+					<input
+						id="passwordConfirm"
+						type="password"
+						bind:value={password2}
+						placeholder="••••••••"
+						required
+						class:invalid={password2 && !valid_password2}
+					/>
+				</div>
+				{#if password2 && !valid_password2}
+					<span class="field-error">Passwords do not match</span>
+				{/if}
+			</div>
+
+			{#if form?.error}
+				<div class="error-message">
+					<Icon icon="material-symbols:error-outline-rounded" />
+					<span>{form.error}</span>
+				</div>
+			{/if}
+
+			<button disabled={!canSubmit} type="submit" class="submit-btn">
+				{#if loading}
+					<Icon icon="eos-icons:loading" />
+					<span>Creating account...</span>
+				{:else}
+					<span>Sign Up</span>
+				{/if}
+			</button>
+		</form>
+
+		<div class="auth-footer">
+			<p>Already have an account? <a href="/signin">Login</a></p>
+		</div>
+	</div>
 </div>
 
 <style>
-	div {
-		background: rgba(255, 255, 255, 0.1);
-		border-radius: 8px;
-		padding: 0.5rem 1rem;
+	.auth-page {
+		min-height: 100vh;
+		width: 100vw;
 		display: flex;
-		justify-content: center;
-		flex-direction: column;
-		align-self: center;
 		align-items: center;
-		padding: 1rem;
-		gap: 1rem;
+		justify-content: center;
+		background-color: #121212;
+		padding: 1.5rem;
 	}
 
-	label {
-		/* background: rgba(255, 255, 255, 0.1); */
-		position: relative;
+	.auth-card {
+		width: 100%;
+		max-width: 480px;
+		background-color: #1e1e1e;
+		padding: 2.5rem;
+		border-radius: 24px;
+		border: 1px solid rgba(255, 255, 255, 0.05);
+		box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
 	}
 
-	.field-error {
-		position: absolute;
-		right: 0;
-		bottom: -1.2rem;
-		width: max-content;
-		color: red;
-	}
-	.title {
-		font-size: 2rem;
-		font-weight: bold;
-		/* background: cyan; */
-		width: min-content;
+	.auth-header {
+		text-align: center;
+		margin-bottom: 2rem;
 	}
 
-	button {
-		color: black;
-		border-radius: 6px;
-		border: solid 1px rgba(255, 255, 255, 0.1);
-		padding: 0.5rem 1rem;
-		margin-top: 1rem;
-	}
-
-	/* button[disabled='true'] { */
-	/* 	opacity: 0.5; */
-	/* } */
-
-	button:hover {
-		background: var(--color-border-hover);
-	}
-
-	button:disabled {
-		opacity: 0.5;
-	}
-
-	button:active {
-		border: solid 2px var(--color-border-active);
-		background: var(--color-border-active);
-	}
-
-	input {
-		font-size: 1.2rem;
-		color: black;
-		padding: 0.5rem 1rem;
-		border-radius: 6px;
-		width: 20rem;
-		background: rgba(255, 255, 255, 0.2);
-		border: solid 1px rgba(255, 255, 255, 0.1);
-		color: white;
-		outline: none;
-		/* border: solid 1px var(--color-border-primary); */
-	}
-
-	input:hover {
-		border: solid 1px var(--color-border-hover);
-	}
-
-	input:focus {
-		border: solid 1px var(--color-border-primary);
-		background: rgba(255, 255, 255, 0.3);
-	}
-
-	label {
+	.logo {
 		display: flex;
-		flex-direction: column;
-		justify-content: space-between;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		margin-bottom: 1.25rem;
+	}
+
+	.logo img {
+		width: 36px;
+		height: 36px;
+	}
+
+	.logo span {
+		font-size: 1.4rem;
+		font-weight: 700;
+		color: var(--color-bg-primary);
+	}
+
+	.auth-header h1 {
+		font-size: 1.75rem;
+		font-weight: 700;
+		margin-bottom: 0.5rem;
+		color: white;
+	}
+
+	.auth-header p {
+		color: var(--color-text-secondary);
+		font-size: 0.9rem;
 	}
 
 	form {
-		width: 100%;
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
-		width: min-content;
-		padding: 1rem;
-		border-radius: 8px;
+		gap: 1.25rem;
 	}
 
-	.error {
-		color: red;
+	.form-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+	}
+
+	@media (max-width: 480px) {
+		.form-row {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.input-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
+
+	.input-group label {
+		font-size: 0.85rem;
+		font-weight: 500;
+		color: var(--color-text-secondary);
+	}
+
+	.input-wrapper {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.input-wrapper :global(svg) {
+		position: absolute;
+		left: 1rem;
+		font-size: 1.2rem;
+		color: var(--color-text-secondary);
+	}
+
+	input {
+		width: 100%;
+		background-color: #2a2a2a;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 12px;
+		color: white;
+		padding: 0.7rem 1rem;
+		font-size: 0.95rem;
+		transition: all 0.2s;
+	}
+
+	.input-wrapper input {
+		padding-left: 2.8rem;
+	}
+
+	input:focus {
+		outline: none;
+		border-color: var(--color-bg-primary);
+		background-color: #333;
+		box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.1);
+	}
+
+	input.invalid {
+		border-color: #ff4d4d;
+	}
+
+	.field-error {
+		font-size: 0.75rem;
+		color: #ff4d4d;
+		margin-top: 0.1rem;
+	}
+
+	.error-message {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		color: #ff4d4d;
+		font-size: 0.85rem;
+		background-color: rgba(255, 77, 77, 0.1);
+		padding: 0.75rem;
+		border-radius: 10px;
+	}
+
+	.submit-btn {
+		background-color: var(--color-bg-primary);
+		color: black;
+		border: none;
+		border-radius: 12px;
+		padding: 0.9rem;
+		font-size: 1rem;
+		font-weight: 700;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		transition: all 0.2s;
+		margin-top: 0.5rem;
+	}
+
+	.submit-btn:hover:not(:disabled) {
+		background-color: var(--color-bg-hover);
+		transform: translateY(-1px);
+	}
+
+	.submit-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.auth-footer {
+		margin-top: 1.5rem;
+		text-align: center;
+		font-size: 0.9rem;
+		color: var(--color-text-secondary);
+	}
+
+	.auth-footer a {
+		color: var(--color-bg-primary);
+		text-decoration: none;
+		font-weight: 600;
+	}
+
+	.auth-footer a:hover {
+		text-decoration: underline;
 	}
 </style>
