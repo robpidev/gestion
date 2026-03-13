@@ -11,16 +11,36 @@ use super::Expense;
 
 #[derive(Debug, SurrealValue, Deserialize)]
 pub struct NewExpense {
-    pub amount: f64,
-    pub description: String,
-    pub processed: bool,
-    pub date: String,
+    amount: f32,
+    description: String,
+    processed: bool,
+    date: String,
+}
+
+impl NewExpense {
+    pub fn new(
+        amount: f32,
+        description: String,
+        processed: bool,
+        date: String,
+    ) -> Result<NewExpense, String> {
+        if amount < 0.0 {
+            return Err("Amount cannot be negative".to_string());
+        };
+
+        Ok(NewExpense {
+            amount,
+            description,
+            processed,
+            date,
+        })
+    }
 }
 
 #[derive(Debug, SurrealValue)]
 struct ExpenseDB {
     id: RecordId,
-    amount: f64,
+    amount: f32,
     description: String,
     processed: bool,
     date: Datetime,
@@ -46,7 +66,7 @@ pub struct ExpensesRepository;
 impl ExpensesRepository {
     pub async fn get(user_id: String) -> Result<Vec<Expense>, (u16, String)> {
         let query = r#"
-select * from type::record("user", $user_id)->had->expense
+select * from (select * from type::record("user", $user_id)->had->expense) order by date desc;
             "#;
 
         let mut result = match DB.query(query).bind(("user_id", user_id)).await {
@@ -92,7 +112,6 @@ COMMIT TRANSACTION;
             Ok(result) => result,
             Err(e) => return Err((500, e.to_string())),
         };
-        dbg!(&result);
         Self::response_expense_parse(result, 4)
     }
 
@@ -195,8 +214,6 @@ IF $relation {{
             Ok(r) => r,
             Err(e) => return Err(Self::error_parse(e.to_string())),
         };
-
-        dbg!(&idex_results);
 
         let resp: Option<ExpenseDB> = match idex_results.take(index) {
             Ok(resp) => resp,

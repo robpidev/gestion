@@ -95,14 +95,10 @@ where
 
         req.extensions_mut().insert(user.id);
 
-        // println!("tk: {user:#?}");
-
         let fut = self.service.call(req);
 
         Box::pin(async move {
             let res = fut.await?;
-
-            println!("Hi from response");
             Ok(res)
         })
     }

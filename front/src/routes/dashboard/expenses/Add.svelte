@@ -1,13 +1,65 @@
-<script>
+<script lang="ts">
 	import Icon from '@iconify/svelte';
+
+	import { enhance } from '$app/forms';
+
+	interface FormData {
+		processed: boolean;
+		description: string;
+		amount: number;
+		date: string;
+	}
+	let formdata = $state({} as FormData);
+	formdata.date = new Date().toISOString().split('T')[0];
+	formdata.processed = false;
+
+	let disabled: boolean = $derived.by(
+		() => !formdata.amount || !formdata.description || !formdata.date || !formdata.amount
+	);
+
+	$inspect(disabled).with(console.log);
+	let sending = $state(false);
 </script>
 
-<form action="">
-	<input type="text" placeholder="Concept" />
-	<input type="number" min="0" placeholder="Amount" />
-	<button type="submit">
-		<Icon icon="streamline:add-1-solid" />
-	</button>
+<form
+	method="POST"
+	action="?/create"
+	use:enhance={() => {
+		sending = true;
+		return async ({ update }) => {
+			sending = false;
+			await update();
+		};
+	}}
+>
+	<label>
+		<input name="processed" type="checkbox" bind:checked={formdata.processed} />
+		<span>Processed</span>
+	</label>
+	<input
+		bind:value={formdata.description}
+		name="description"
+		type="text"
+		placeholder="Concept"
+		required
+	/>
+	<input
+		name="amount"
+		type="number"
+		min="0"
+		bind:value={formdata.amount}
+		placeholder="Amount"
+		required
+	/>
+	<input name="date" type="date" bind:value={formdata.date} required />
+	{#if !sending}
+		<button type="submit" {disabled}>
+			<Icon icon="streamline:add-1-solid" />
+		</button>
+	{:else}
+		<Icon icon="eos-icons:loading" />
+	{/if}
+	<!-- else if content here -->
 </form>
 
 <style>
@@ -18,6 +70,10 @@
 		display: flex;
 		gap: 1rem;
 		border-radius: 6px;
+		align-items: center;
+		margin: 1rem 0;
+		display: flex;
+		flex-wrap: wrap;
 	}
 
 	input {
@@ -56,5 +112,10 @@
 
 	button:active {
 		box-shadow: 0 0 0 2px var(--color-border-focus);
+	}
+
+	button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 </style>

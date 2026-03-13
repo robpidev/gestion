@@ -33,7 +33,7 @@ pub async fn expenses(user_id: ReqData<String>) -> impl Responder {
 
 #[derive(Deserialize)]
 struct NewExpense {
-    amount: f64,
+    amount: f32,
     description: String,
     processed: bool,
     date: String,
@@ -75,7 +75,8 @@ pub async fn update_amount(
     amout: web::Form<UpdateAmount>,
     user_id: ReqData<String>,
 ) -> impl Responder {
-    match ExpensesService::update_amount(user_id.to_string(), path.to_string(), amout.amount).await {
+    match ExpensesService::update_amount(user_id.to_string(), path.to_string(), amout.amount).await
+    {
         Ok(data) => HttpResponse::Ok().json(data),
         Err((c, m)) => HttpResponse::build(StatusCode::from_u16(c).unwrap()).body(m),
     }

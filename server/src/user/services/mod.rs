@@ -63,11 +63,13 @@ impl UserService {
         };
 
         Ok(UserSession {
-            id: user.id,
-            username: user.username,
+            user: User {
+                id: user.id,
+                username: user.username,
+                name: user.name,
+                lastname: user.lastname,
+            },
             token,
-            name: user.name,
-            lastname: user.lastname,
         })
     }
 }

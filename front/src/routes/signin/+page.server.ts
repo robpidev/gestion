@@ -2,6 +2,12 @@ import { fail, redirect, error, type Actions, type RequestEvent } from "@sveltej
 import { NewUser, type UserToken } from "$lib/interfaces/user";
 import { apiUrl } from "$lib/config";
 
+export const prerender = false;
+
+export const load = async ({ cookies }: RequestEvent) => {
+  cookies.delete('token', { path: '/' });
+}
+
 export const actions: Actions = {
   login: async ({ cookies, request }: RequestEvent) => {
     const data = await request.formData();
@@ -16,11 +22,11 @@ export const actions: Actions = {
     const response = await fetch(url, options);
 
     if (response.status === 200) {
-      let data: UserToken = await response.json();
-      // console.log(data)
-      cookies.set('token', data.token, { path: '/' });
+      let userToken: UserToken = await response.json();
+      console.log(userToken)
+      cookies.set('token', userToken.token, { path: '/' });
       return {
-        user: data,
+        user: userToken.user,
         status: 200
       }
     }

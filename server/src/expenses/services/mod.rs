@@ -16,15 +16,13 @@ impl ExpensesService {
     pub async fn create(
         id: String,
         description: String,
-        amount: f64,
+        amount: f32,
         date: String,
         processed: bool,
     ) -> Result<impl Serialize, (u16, String)> {
-        let new_expense = NewExpense {
-            description,
-            amount,
-            date,
-            processed,
+        let new_expense = match NewExpense::new(amount, description, processed, date) {
+            Ok(new_expense) => new_expense,
+            Err(e) => return Err((400, e)),
         };
         ExpensesRepository::create(id, new_expense).await
     }
@@ -36,17 +34,16 @@ impl ExpensesService {
     pub async fn update(
         user_id: String,
         expense_id: String,
-        amount: f64,
+        amount: f32,
         description: String,
         date: String,
         processed: bool,
     ) -> Result<impl Serialize, (u16, String)> {
-        let new_expense = NewExpense {
-            description,
-            amount,
-            date,
-            processed,
+        let new_expense = match NewExpense::new(amount, description, processed, date) {
+            Ok(new_expense) => new_expense,
+            Err(e) => return Err((400, e)),
         };
+
         ExpensesRepository::update(user_id, expense_id, new_expense).await
     }
 
@@ -55,6 +52,9 @@ impl ExpensesService {
         expense_id: String,
         amount: f64,
     ) -> Result<impl Serialize, (u16, String)> {
+        if amount < 0.0 {
+            return Err((400, "Amount cannot be negative".to_string()));
+        }
         let key = "amount";
         ExpensesRepository::update_field(user_id, expense_id, key, amount).await
     }
@@ -64,6 +64,9 @@ impl ExpensesService {
         expense_id: String,
         description: String,
     ) -> Result<impl Serialize, (u16, String)> {
+        if description.trim().is_empty() {
+            return Err((400, "Description cannot be empty".to_string()));
+        }
         let key = "description";
         ExpensesRepository::update_field(user_id, expense_id, key, description).await
     }

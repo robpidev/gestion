@@ -3,11 +3,9 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { userState } from '$lib/store/user.svelte';
 	import { onMount } from 'svelte';
-	let { children } = $props();
+	let { data, children } = $props();
 	onMount(() => {
-		if (!userState.user) {
-			goto('/signin');
-		}
+		userState.user = data.user;
 	});
 </script>
 
@@ -15,9 +13,9 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<nav>
+<nav data-sveltekit-preload-data="off">
 	<ul>
-		<li><a href="/dashboard">Dashboard</a></li>
+		<li><a href="/dashboard">{userState.user?.name}</a></li>
 		<li><a href="/dashboard/expenses">Expenses</a></li>
 		<li><a href="/dashboard/incomes">Income</a></li>
 		<li><a href="/signin">Logout</a></li>
